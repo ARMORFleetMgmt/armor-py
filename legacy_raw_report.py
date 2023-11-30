@@ -14,6 +14,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-u', '--url', help='API URL', default="https://app.armordata.io/api/v1/")
 parser.add_argument('-t', '--token', help='API Token', default="AT:gVUV7pVIM........9E4B1XMQP", required=True)
 parser.add_argument('-d', '--days', help='Days of history to download', default='30')
+parser.add_argument('-c', '--customer', help='Customer name to download', default='')
+
 
 args = parser.parse_args()
 
@@ -31,13 +33,17 @@ first = True
 next = "true"
 assets = dict()
 
+query = None
+if args.customer:
+    query = f'tags.customer=="{args.customer}"'
+
 count = 0
 total = 0
 while more:
     if first:
-        resp = client.request("GET", "asset", query={"limit": 2000, "next": next, "total": True})
+        resp = client.request("GET", "asset", query={"search": query, "limit": 2000, "next": next, "total": True})
     else:
-        resp = client.request("GET", "asset", query={"limit": 2000, "next": next})
+        resp = client.request("GET", "asset", query={"search": query, "limit": 2000, "next": next})
     if resp.body['count'] > 0:
         if first:
             total = resp.body['total']
@@ -63,9 +69,9 @@ count = 0
 total = 0
 while more:
     if first:
-        resp = client.request("GET", "site", query={"limit": 2000, "next": next, "total": True})
+        resp = client.request("GET", "site", query={"search": query, "limit": 2000, "next": next, "total": True})
     else:
-        resp = client.request("GET", "site", query={"limit": 2000, "next": next})
+        resp = client.request("GET", "site", query={"search": query, "limit": 2000, "next": next})
     if resp.body['count'] > 0:
         if first:
             total = resp.body['total']
@@ -95,6 +101,8 @@ def convert_category(cat):
         return "Misc"
 
 
+if args.customer:
+    query = f'as.tags.customer=="{args.customer}"'
 # download history
 more = True
 first = True
@@ -107,7 +115,7 @@ with open(fileName, "w") as f:
         "AssetIdent,EquipID,CompanyName,Model,SerialNbr,Nickname,SiteName,City,State,SerialNbr1,Category,ReportDate,StartTime,Minutes,Xaxis,Yaxis,Zaxis,ServiceRequest,ReplacedBatteries,Maintenance,FactoryReset,CUSI,Expires,CarrierStatus,Latitude,Longitude",
         file=f)
     while more:
-        resp = client.request("GET", "history/json", query={"limit": 10000, "utc": True, "start": start, "end": end})
+        resp = client.request("GET", "history/json", query={"search": query, "limit": 10000, "utc": True, "start": start, "end": end})
         if resp.body['count'] > 0:
             count += resp.body['count']
             print(
@@ -119,9 +127,14 @@ with open(fileName, "w") as f:
                     f"{asset['properties'].get('oldAssetIdent', '')},,{asset['manufacturerId']},{asset['modelId']},{asset['properties'].get('serialNumber', '')},{asset['name']},",
                     file=f, end='')
                 if site:
-                    print(
-                        f"{site['name']},{site['address']['city']},{site['address']['state']},{asset['properties'].get('serialNumber', '')},",
-                        file=f, end='')
+                    if site['address'] and 'city' in site['address'] and 'state' in site['address']:
+                        print(
+                            f"{site['name']},{site['address']['city']},{site['address']['state']},{asset['properties'].get('serialNumber', '')},",
+                            file=f, end='')
+                    else:
+                        print(
+                            f"{site['name']},,,{asset['properties'].get('serialNumber', '')},",
+                            file=f, end='')
                 else:
                     print(f",,,{asset['properties'].get('serialNumber', '')},", file=f, end='')
                 print(
