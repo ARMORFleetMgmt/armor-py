@@ -16,7 +16,6 @@ parser.add_argument('-t', '--token', help='API Token', default="AT:gVUV7pVIM....
 parser.add_argument('-d', '--days', help='Days of history to download', default='30')
 parser.add_argument('-c', '--customer', help='Customer name to download', default='')
 
-
 args = parser.parse_args()
 
 client = ArmorClient(args.url, token=args.token, debug=False)
@@ -88,6 +87,13 @@ while more:
 fileName = "legacry_raw." + today.strftime('%Y%m%d%H%M%S') + ".csv"
 
 
+def field_or_blank(d, field):
+    if field in d:
+        return d[field]
+    else:
+        return ""
+
+
 def convert_category(cat):
     if cat == "run-start":
         return "RunStart"
@@ -101,8 +107,9 @@ def convert_category(cat):
         return "Misc"
 
 
+assetTags = None
 if args.customer:
-    query = f'as.tags.customer=="{args.customer}"'
+    assetTags = [f'customer:{args.customer}']
 # download history
 more = True
 first = True
@@ -114,17 +121,28 @@ with open(fileName, "w") as f:
     print(
         "AssetIdent,EquipID,CompanyName,Model,SerialNbr,Nickname,SiteName,City,State,SerialNbr1,Category,ReportDate,StartTime,Minutes,Xaxis,Yaxis,Zaxis,ServiceRequest,ReplacedBatteries,Maintenance,FactoryReset,CUSI,Expires,CarrierStatus,Latitude,Longitude",
         file=f)
+    next = None
     while more:
-        resp = client.request("GET", "history/json", query={"search": query, "limit": 10000, "utc": True, "start": start, "end": end})
+        q = {"limit": 20000, "utc": True, "start": start, "end": end}
+        if assetTags:
+            q['assetTags'] = assetTags
+        if next:
+            q['next'] = next
+        resp = client.request("GET", "history/json", query=q)
+        if 'next' in resp.body:
+            next = resp.body['next']
+        else:
+            next = None
+            more = False
         if resp.body['count'] > 0:
             count += resp.body['count']
             print(
-                f"Got {count} records, first: {resp.body['objects'][0]['ts']}, last: {resp.body['objects'][-1]['ts']}")
+                f"Got {count} records, progress:  {resp.body['assetIdx']}/{resp.body['assetTotal']} assets")
             for record in resp.body['objects']:
                 asset = assets.get(record['m']['assetId'], None)
                 site = sites.get(asset['siteId'], None) if asset.get('siteId') else None
                 print(
-                    f"{asset['properties'].get('oldAssetIdent', '')},,{asset['manufacturerId']},{asset['modelId']},{asset['properties'].get('serialNumber', '')},{asset['name']},",
+                    f"{asset['properties'].get('oldAssetIdent', '')},,{field_or_blank(asset,'manufacturerId')},{field_or_blank(asset,'modelId')},{asset['properties'].get('serialNumber', '')},{asset['name']},",
                     file=f, end='')
                 if site:
                     if site['address'] and 'city' in site['address'] and 'state' in site['address']:
@@ -145,6 +163,5 @@ with open(fileName, "w") as f:
                 else:
                     print(f"0,0", file=f)
                 first = False
-            end = resp.body['objects'][-1]['ts']
         else:
             more = False

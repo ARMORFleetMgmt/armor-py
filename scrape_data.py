@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-u', '--url', help='API URL', default="https://app.armordata.io/api/v1/")
 parser.add_argument('-t', '--token', help='API Token', default="AT:gVUV7pVIM........9E4B1XMQP", required=True)
 parser.add_argument('-d', '--days', help='Days of history to download', default='30')
+parser.add_argument('-a', '--all', help='Download all data', default=False)
 
 args = parser.parse_args()
 
@@ -97,18 +98,29 @@ start = startDate.strftime('%Y-%m-%dT%H:%M:%SZ')
 with open(fileName, "w") as f:
     print("[", file=f)
     count = 0
+    next = None
     while more:
-        resp = client.request("GET", "history/json", query={"limit": 2000, "utc": True, "start": start, "end": end})
+        q = {"limit": 20000, "utc": True}
+        if not args.all:
+            q["start"] = start
+            q["end"] = end
+        if next:
+            q['next'] = next
+        resp = client.request("GET", "history/json", query=q)
+        if 'next' in resp.body:
+            next = resp.body['next']
+        else:
+            next = None
+            more = False
         if resp.body['count'] > 0:
             count += resp.body['count']
-            print(f"Got {count} records, first: {resp.body['objects'][0]['ts']}, last: {resp.body['objects'][-1]['ts']}")
+            print(
+                f"Got {count} records, progress:  {resp.body['assetIdx']}/{resp.body['assetTotal']} assets")
             for record in resp.body['objects']:
                 if not first:
                     print(",", file=f)
                 first = False
                 json.dump(record, f, indent=2)
-
-            end = resp.body['objects'][-1]['ts']
         else:
             more = False
     print("]", file=f)
