@@ -1,7 +1,7 @@
 # armor-py
 
 
-This package provides some useful scripts for interacting with the ARMOR Fleet Management platform from Python.
+This package provides useful sample scripts for interacting with the ARMOR Fleet Management platform from Python.
 
 It implements the REST API that is available here: https://app.armordata.io/swaggerui/
 
@@ -38,6 +38,9 @@ python scrape_data.py -t "AT:xxxx" -d 30
 * -u: The URL used to access the Armor platform API.
 * -t: The application token used to authenticate with the platform.
 * -d: The number of days of history to download.
+
+## Known Limitations
+* The client does not handle all network and timing errors gracefully.
 
 ## License
 

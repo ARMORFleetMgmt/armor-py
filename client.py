@@ -62,15 +62,21 @@ class ArmorClient:
             print(f"Body: {requestHeaders}")
             print(f"Query: {query}")
             print(f"Body: {body}")
-        response = requests.request(method=method, url=self.url + uri, params=query, headers=requestHeaders, json=body)
         try:
+            response = requests.request(method=method, url=self.url + uri, params=query, headers=requestHeaders, json=body, timeout=120)
+            if response.status_code != 200:
+                print(f"s:{response.status_code} h:{json.dumps(response.headers, indent=4)} b:{response.text}")
             response_body = response.json()  # Parse the response as JSON
             if self.debug:
                 print("Response JSON:")
-                print(json.dumps(response_body, indent=4))  # Pretty-print the JSON response
-        except:
+                #print(json.dumps(response_body, indent=4))  # Pretty-print the JSON response
+        except Exception as e:
             try:
                 response_body = response.text
+                if self.debug:
+                    print(f"Response exception: ({e}) {response_body}")
             except:
                 response_body = None
+                if self.debug:
+                    print(f"Response exception: ({e}) (no body)")
         return ApiReturn(response.status_code,  response_body)

@@ -114,8 +114,13 @@ with open(fileName, "w") as f:
             more = False
         if resp.body['count'] > 0:
             count += resp.body['count']
-            print(
-                f"Got {count} records, progress:  {resp.body['assetIdx']}/{resp.body['assetTotal']} assets")
+            if 'assetIdx' in resp.body and 'assetTotal' in resp.body:
+                print(
+                    f"Got {count} records, progress:  {resp.body['assetIdx']}/{resp.body['assetTotal']} assets")
+            else:
+                print(
+                    f"Got {count} records")
+
             for record in resp.body['objects']:
                 if not first:
                     print(",", file=f)
