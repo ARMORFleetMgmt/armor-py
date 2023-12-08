@@ -29,7 +29,7 @@ python legacy_raw_report.py -t "AT:xxxx" -d 30
 * -u: The URL used to access the Armor platform API.
 * -t: The application token used to authenticate with the platform.
 * -d: The number of days of history to download.
-* 
+
 ### scrape_data.py
 This utility downloads assets, sites, and history to JSON files.
 ```bash
@@ -38,6 +38,14 @@ python scrape_data.py -t "AT:xxxx" -d 30
 * -u: The URL used to access the Armor platform API.
 * -t: The application token used to authenticate with the platform.
 * -d: The number of days of history to download.
+* 
+### scrape_csv.py
+This utility creates a CSV file with all assets and site data combined into a single csv table.
+```bash
+python scrape_data.py -t "AT:xxxx" -d 30
+```
+* -u: The URL used to access the Armor platform API.
+* -t: The application token used to authenticate with the platform.
 
 ## Known Limitations
 * The client does not handle all network and timing errors gracefully.
