@@ -101,7 +101,7 @@ else:
     fileName = "assets."+today.strftime('%Y%m%d%H%M%S') + ".csv"
 
 with open(fileName, "w") as f:
-    print( "assetId,nickname,serialNumber,deviceId,customer,manufacturer,model,siteId,siteName,siteNum,address1,address2,city,state,country,dateLastActivity,runTimeLast1,runTimeLast7,runTimeLast30,chargeTimeLast1,chargeTimeLast7,chargeTimeLast30", file=f)
+    print( "assetId,nickname,serialNumber,deviceId,customer,manufacturer,model,siteId,siteName,siteNum,address1,address2,city,state,country,dateLastActivity,dateLastRun,dateLastCharge,runTimeLast1,runTimeLast7,runTimeLast30,chargeTimeLast1,chargeTimeLast7,chargeTimeLast30", file=f)
 
     for asset in assets:
         if 'siteId' in asset and asset['siteId'] in sites:
@@ -139,6 +139,10 @@ with open(fileName, "w") as f:
             print(f"{asset['siteId']},{siteName},{siteNum},{address1},{address2},{city},{state},{country},{field_or_blank(asset,'dateLastActivity')},", file=f, end="")
         else:
             print(f",,,,,,{asset['dateLastActivity']},", file=f, end="")
+        if 'properties' in asset:
+            print(f"{field_or_blank(asset['properties'],'dateLastRun')},{field_or_blank(asset['properties'],'dateLastCharge')},", file=f, end="")
+        else:
+            print(",,", file=f, end="")
         if 'data' in asset:
             print(f"{field_or_zero(asset['data'],'runTimeLast1')},{field_or_zero(asset['data'],'runTimeLast7')},{field_or_zero(asset['data'],'runTimeLast30')},", file=f, end="")
             print(f"{field_or_zero(asset['data'],'chargeTimeLast1')},{field_or_zero(asset['data'],'chargeTimeLast7')},{field_or_zero(asset['data'],'chargeTimeLast30')}", file=f, end="")
