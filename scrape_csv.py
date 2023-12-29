@@ -14,12 +14,15 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-u', '--url', help='API URL', default="https://app.armordata.io/api/v1/")
 parser.add_argument('-t', '--token', help='API Token', default="AT:gVUV7pVIM........9E4B1XMQP", required=True)
 parser.add_argument('-c', '--customer', help='Customer name to download', default='')
+parser.add_argument('-d', '--days', help='Days of history to download', default='30')
+
 
 args = parser.parse_args()
 
 client = ArmorClient(args.url, token=args.token, debug=False)
 
 today = datetime.datetime.today()
+startDate = today - datetime.timedelta(days=int(args.days))
 
 # download assets
 print(f"Downloading assets...")
@@ -32,57 +35,24 @@ query = None
 if args.customer:
     query = f'tags.customer=="{args.customer}"'
 
-count = 0
-total = 0
-while more:
-    if first:
-        resp = client.request("GET", "asset", query={"search": query, "limit": 2000, "next": next, "total": True})
-    else:
-        resp = client.request("GET", "asset", query={"search": query, "limit": 2000, "next": next})
-    if resp.body['count'] > 0:
-        if first:
-            total = resp.body['total']
-        count += resp.body['count']
-        print(
-            f"Got {count}/{total} assets, first: {resp.body['objects'][0]['id']}, last: {resp.body['objects'][-1]['id']}")
-        for record in resp.body['objects']:
-            assets.append(record)
-            first = False
-        next = resp.body['next']
-    else:
-        more = False
+resp = client.request("GET", "asset/csv", query={"search": query})
+
+fileName = "assets."+today.strftime('%Y%m%d%H%M%S') + ".csv"
+print(f"Downloading assets...")
+with open(fileName, "w") as f:
+    f.write(resp.body)
 
 # download sites
 print(f"Downloading sites...")
-more = True
-first = True
-next = "true"
+resp = client.request("GET", "sites/csv", query={"search": query})
 
-sites = dict()
-
-count = 0
-total = 0
-while more:
-    if first:
-        resp = client.request("GET", "site", query={"search": query, "limit": 2000, "next": next, "total": True})
-    else:
-        resp = client.request("GET", "site", query={"search": query, "limit": 2000, "next": next})
-    if resp.body['count'] > 0:
-        if first:
-            total = resp.body['total']
-        count += resp.body['count']
-        print(
-            f"Got {count}/{total} sites, first: {resp.body['objects'][0]['id']}, last: {resp.body['objects'][-1]['id']}")
-        for record in resp.body['objects']:
-            sites[record['id']] = record
-            first = False
-        next = resp.body['next']
-    else:
-        more = False
-
+fileName = "sites."+today.strftime('%Y%m%d%H%M%S') + ".csv"
+print(f"Downloading sites...")
+with open(fileName, "w") as f:
+    f.write(resp.body)
 
 # download assets
-print(f"Building report...")
+print(f"Downloading history...")
 
 def field_or_blank(d, field):
     if field in d:
@@ -95,57 +65,44 @@ def field_or_zero(d, field):
     else:
         return "0"
 
+fileName = "history."+today.strftime('%Y%m%d%H%M%S') + ".csv"
+
+assetTags = None
 if args.customer:
-    fileName = "assets."+args.customer+"."+today.strftime('%Y%m%d%H%M%S') + ".csv"
-else:
-    fileName = "assets."+today.strftime('%Y%m%d%H%M%S') + ".csv"
+    assetTags = [f'customer:{args.customer}']
 
+more = True
+first = True
+end = today.strftime('%Y-%m-%dT%H:%M:%SZ')
+start = startDate.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+print(f"Downloading history from {start} to {end}...")
 with open(fileName, "w") as f:
-    print( "assetId,nickname,serialNumber,deviceId,customer,manufacturer,model,siteId,siteName,siteNum,address1,address2,city,state,country,dateLastActivity,dateLastRun,dateLastCharge,runTimeLast1,runTimeLast7,runTimeLast30,chargeTimeLast1,chargeTimeLast7,chargeTimeLast30", file=f)
-
-    for asset in assets:
-        if 'siteId' in asset and asset['siteId'] in sites:
-            site = sites[asset['siteId']]
-            siteName = site['name']
-            if 'address' in site:
-                address1 = field_or_blank(site['address'], 'address1')
-                address2 = field_or_blank(site['address'], 'address2')
-                city = field_or_blank(site['address'], 'city')
-                state = field_or_blank(site['address'], 'state')
-                country = field_or_blank(site['address'], 'country')
+    count = 0
+    print("id,ts,tsl,tzl,m.assetId,m.txnId,m.event,d.runTime,d.chargeTime", file=f)
+    next = None
+    while more:
+        q = {"limit": 20000, "utc": True, "start": start, "end": end}
+        if assetTags:
+            q['assetTags'] = assetTags
+        if next:
+            q['next'] = next
+        resp = client.request("GET", "history/json", query=q)
+        if 'next' in resp.body:
+            next = resp.body['next']
+        else:
+            next = None
+            more = False
+        if resp.body['count'] > 0:
+            count += resp.body['count']
+            if 'assetIdx' in resp.body and 'assetTotal' in resp.body:
+                print(
+                    f"Got {count} records, progress:  {resp.body['assetIdx']}/{resp.body['assetTotal']} assets")
             else:
-                address1 = ""
-                address2 = ""
-                city = ""
-                state = ""
-                country = ""
-            if 'tags' in site and 'store' in site['tags']:
-                siteNum = site['tags']['store']
-            elif 'tags' in site and 'club' in site['tags']:
-                siteNum = site['tags']['club']
-            else:
-                siteNum = -1
-
-        if 'tags' in asset and 'customer' in asset['tags']:
-            customer = asset['tags']['customer']
+                print(
+                    f"Got {count} records")
+            for record in resp.body['objects']:
+                print(f"{record['id']},{record['ts']},{record['ts']},{record['tsl']},{record['tzl']},{record['m']['assetId']},{field_or_blank(record['m'],'txnId')},{record['m']['event']},{record.get('d', dict()).get('runTime', 0)},{record.get('d', dict()).get('chargeTime', 0)}", file=f)
+                first = False
         else:
-            customer = "unknown"
-        if 'properties' in asset:
-            print(f"{asset['id']},{asset['name']},{field_or_blank(asset['properties'],'serialNumber')},{field_or_blank(asset['properties'],'deviceId')},", file=f, end="")
-        else:
-            print(f"{asset['id']},{asset['name']},,,", file=f, end="")
-        print(f"{customer},{field_or_blank(asset,'manufacturerId')},{field_or_blank(asset,'modelId')},", file=f, end="")
-        if 'siteId' in asset:
-            print(f"{asset['siteId']},{siteName},{siteNum},{address1},{address2},{city},{state},{country},{field_or_blank(asset,'dateLastActivity')},", file=f, end="")
-        else:
-            print(f",,,,,,{asset['dateLastActivity']},", file=f, end="")
-        if 'properties' in asset:
-            print(f"{field_or_blank(asset['properties'],'dateLastRun')},{field_or_blank(asset['properties'],'dateLastCharge')},", file=f, end="")
-        else:
-            print(",,", file=f, end="")
-        if 'data' in asset:
-            print(f"{field_or_zero(asset['data'],'runTimeLast1')},{field_or_zero(asset['data'],'runTimeLast7')},{field_or_zero(asset['data'],'runTimeLast30')},", file=f, end="")
-            print(f"{field_or_zero(asset['data'],'chargeTimeLast1')},{field_or_zero(asset['data'],'chargeTimeLast7')},{field_or_zero(asset['data'],'chargeTimeLast30')}", file=f, end="")
-        else:
-            print("0,0,0,0,0,0", file=f, end="")
-        print("", file=f)
+            more = False

@@ -49,7 +49,9 @@ with open(fileName, "w") as f:
                     print(",", file=f)
                 first = False
                 json.dump(record, f, indent=2)
-
+        else:
+            more = False
+        if 'next' in resp.body:
             next = resp.body['next']
         else:
             more = False
@@ -81,7 +83,9 @@ with open(fileName, "w") as f:
                     print(",", file=f)
                 first = False
                 json.dump(record, f, indent=2)
-
+        else:
+            more = False
+        if 'next' in resp.body:
             next = resp.body['next']
         else:
             more = False

@@ -52,6 +52,9 @@ while more:
         for record in resp.body['objects']:
             assets[record['id']] = record
             first = False
+    else:
+        more = False
+    if 'next' in resp.body:
         next = resp.body['next']
     else:
         more = False
@@ -80,6 +83,9 @@ while more:
         for record in resp.body['objects']:
             sites[record['id']] = record
             first = False
+    else:
+        more = False
+    if 'next' in resp.body:
         next = resp.body['next']
     else:
         more = False
