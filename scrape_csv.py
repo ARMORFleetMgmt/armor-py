@@ -44,7 +44,7 @@ with open(fileName, "w") as f:
 
 # download sites
 print(f"Downloading sites...")
-resp = client.request("GET", "sites/csv", query={"search": query})
+resp = client.request("GET", "site/csv", query={"search": query})
 
 fileName = "sites."+today.strftime('%Y%m%d%H%M%S') + ".csv"
 print(f"Downloading sites...")
