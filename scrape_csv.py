@@ -51,7 +51,7 @@ print(f"Downloading sites...")
 with open(fileName, "w") as f:
     f.write(resp.body)
 
-# download assets
+# download history
 print(f"Downloading history...")
 
 def field_or_blank(d, field):
