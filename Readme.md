@@ -42,7 +42,7 @@ python scrape_data.py -t "AT:xxxx" -d 30
 ### scrape_csv.py
 This utility creates a CSV file with all assets and site data combined into a single csv table.
 ```bash
-python scrape_data.py -t "AT:xxxx" -d 30
+python scrape_csv.py -t "AT:xxxx" -d 30
 ```
 * -u: The URL used to access the Armor platform API.
 * -t: The application token used to authenticate with the platform.
