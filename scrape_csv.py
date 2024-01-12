@@ -102,7 +102,7 @@ with open(fileName, "w") as f:
                 print(
                     f"Got {count} records")
             for record in resp.body['objects']:
-                print(f"{record['id']},{record['ts']},{record['ts']},{record['tsl']},{record['tzl']},{record['m']['assetId']},{field_or_blank(record['m'],'txnId')},{record['m']['event']},{record.get('d', dict()).get('runTime', 0)},{record.get('d', dict()).get('chargeTime', 0)}", file=f)
+                print(f"{record['id']},{record['ts']},{record['tsl']},{record['tzl']},{record['m']['assetId']},{field_or_blank(record['m'],'txnId')},{record['m']['event']},{record.get('d', dict()).get('runTime', 0)},{record.get('d', dict()).get('chargeTime', 0)}", file=f)
                 first = False
         else:
             more = False
