@@ -79,7 +79,7 @@ start = startDate.strftime('%Y-%m-%dT%H:%M:%SZ')
 print(f"Downloading history from {start} to {end}...")
 with open(fileName, "w") as f:
     count = 0
-    print("id,ts,tsl,tzl,m.assetId,m.txnId,m.event,d.runTime,d.chargeTime", file=f)
+    print("id,ts,tsl,tzl,m.assetId,m.siteId,m.manufacturerId,m.modelId,m.deviceId,m.txnId,m.event,d.runTime,d.chargeTime", file=f)
     next = None
     while more:
         q = {"limit": 20000, "utc": True, "start": start, "end": end}
@@ -102,7 +102,7 @@ with open(fileName, "w") as f:
                 print(
                     f"Got {count} records")
             for record in resp.body['objects']:
-                print(f"{record['id']},{record['ts']},{record['tsl']},{record['tzl']},{record['m']['assetId']},{field_or_blank(record['m'],'txnId')},{record['m']['event']},{record.get('d', dict()).get('runTime', 0)},{record.get('d', dict()).get('chargeTime', 0)}", file=f)
+                print(f"{record['id']},{record['ts']},{record['tsl']},{record['tzl']},{record['m']['assetId']},{field_or_blank(record['m'],'siteId')},{field_or_blank(record['m'],'manufacturerId')},{field_or_blank(record['m'],'modelId')},{field_or_blank(record['m'],'deviceId')},{field_or_blank(record['m'],'txnId')},{record['m']['event']},{record.get('d', dict()).get('runTime', 0)},{record.get('d', dict()).get('chargeTime', 0)}", file=f)
                 first = False
         else:
             more = False
