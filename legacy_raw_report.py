@@ -166,7 +166,7 @@ with open(fileName, "w") as f:
                 else:
                     print(f",,,{asset['properties'].get('serialNumber', '')},", file=f, end='')
                 print(
-                    f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,0,{asset['properties'].get('cusi','')},,Active,",
+                    f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,0,{site['properties'].get('cusi','')},,Active,",
                     file=f, end='')
                 if record.get('l', None):
                     print(f"{record['l']['coordinates'][1]},{record['l']['coordinates'][0]}", file=f)
