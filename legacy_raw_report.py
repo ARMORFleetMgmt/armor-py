@@ -90,7 +90,7 @@ while more:
     else:
         more = False
 
-fileName = "legacry_raw." + today.strftime('%Y%m%d%H%M%S') + ".csv"
+fileName = "legacy_raw." + today.strftime('%Y%m%d%H%M%S') + ".csv"
 
 
 def field_or_blank(d, field):
@@ -125,7 +125,7 @@ print(f"Downloading history from {start} to {end}...")
 with open(fileName, "w") as f:
     count = 0
     print(
-        "AssetIdent,EquipID,CompanyName,Model,SerialNbr,Nickname,SiteName,City,State,SerialNbr1,Category,ReportDate,StartTime,Minutes,Xaxis,Yaxis,Zaxis,ServiceRequest,ReplacedBatteries,Maintenance,FactoryReset,CUSI,Expires,CarrierStatus,Latitude,Longitude",
+        "AssetIdent,EquipID,CompanyName,Model,SerialNbr,Nickname,SiteName,City,State,Category,ReportDate,StartTime,Minutes,Xaxis,Yaxis,Zaxis,ServiceRequest,ReplacedBatteries,Maintenance,FactoryReset,CUSI,Expires,CarrierStatus,Latitude,Longitude",
         file=f)
     next = None
     while more:
