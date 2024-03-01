@@ -160,7 +160,7 @@ with open(fileName, "w") as f:
                         cusi = site['properties'].get('cusi', '')
                     if site['address'] and 'city' in site['address'] and 'state' in site['address']:
                         print(
-                            f"{site['name']},{site['address']['city']},{site['address']['state']},{asset['properties'].get('serialNumber', '')},",
+                            f"{site['name']},{site['address']['city']},{site['address']['state']},",
                             file=f, end='')
                     else:
                         print(
@@ -168,9 +168,9 @@ with open(fileName, "w") as f:
                             file=f, end='')
                 else:
                     print(f",,,{asset['properties'].get('serialNumber', '')},", file=f, end='')
-                record['ts'] = datetime.datetime.fromisoformat(record['ts']).strftime('%Y-%m-%d %H:%M:%S')
+                record['ts'] = datetime.datetime.fromisoformat(record['ts']).strftime('%m/%d/%Y')
                 print(
-                    f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,{cusi},0,,Active,",
+                    f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,0,{cusi},0,Active,",
                     file=f, end='')
                 if record.get('l', None):
                     print(f"{record['l']['coordinates'][1]},{record['l']['coordinates'][0]}", file=f)
