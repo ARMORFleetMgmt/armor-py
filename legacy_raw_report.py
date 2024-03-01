@@ -170,7 +170,7 @@ with open(fileName, "w") as f:
                     print(f",,,{asset['properties'].get('serialNumber', '')},", file=f, end='')
                 record['ts'] = datetime.datetime.fromisoformat(record['ts']).strftime('%Y-%m-%d %H:%M:%S')
                 print(
-                    f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,0,{cusi},,Active,",
+                    f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,{cusi},0,,Active,",
                     file=f, end='')
                 if record.get('l', None):
                     print(f"{record['l']['coordinates'][1]},{record['l']['coordinates'][0]}", file=f)
