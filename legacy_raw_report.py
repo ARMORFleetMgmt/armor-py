@@ -158,16 +158,14 @@ with open(fileName, "w") as f:
                 if site:
                     if 'properties' in site:
                         cusi = site['properties'].get('cusi', '')
-                    if site['address'] and 'city' in site['address'] and 'state' in site['address']:
-                        print(
-                            f"{site['name']},{site['address']['city']},{site['address']['state']},",
-                            file=f, end='')
-                    else:
-                        print(
-                            f"{site['name']},,,{asset['properties'].get('serialNumber', '')},",
-                            file=f, end='')
+                    if 'address' in site and 'city' in site['address'] and 'state' in site['address']:
+                        city = site['address'].get('city','')
+                        state = site['address'].get('state','')
+                    print(
+                        f"{site['name']},{city},{state},",
+                        file=f, end='')
                 else:
-                    print(f",,,{asset['properties'].get('serialNumber', '')},", file=f, end='')
+                    print(f",,,", file=f, end='')
                 record['ts'] = datetime.datetime.fromisoformat(record['ts']).strftime('%m/%d/%Y')
                 print(
                     f"{convert_category(record['m']['event'])},{record['ts']},{record['ts']},{record.get('d', dict()).get('runTime', 0)},0,0,0,0,0,0,0,{cusi},0,Active,",
