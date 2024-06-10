@@ -130,6 +130,6 @@ with open(fileName, "w") as f:
                     print(",", file=f)
                 first = False
                 json.dump(record, f, indent=2)
-        else:
-            more = False
+        elif not more:
+            break
     print("]", file=f)
