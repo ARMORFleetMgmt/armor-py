@@ -175,5 +175,5 @@ with open(fileName, "w") as f:
                 else:
                     print(f"0,0", file=f)
                 first = False
-        else:
-            more = False
+        elif not more:
+            break
