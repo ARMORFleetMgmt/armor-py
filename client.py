@@ -54,29 +54,32 @@ class ArmorClient:
         return response.body['token']
 
     def request(self, method, uri, query=None, body=None, headers=None):
-        requestHeaders = self.requestHeaders
-        if headers:
-            requestHeaders = headers
+        requestHeaders = {**self.requestHeaders, **headers} if headers else self.requestHeaders
         if self.debug:
             print(f"Request: {method} {self.url + uri}")
             print(f"Body: {requestHeaders}")
             print(f"Query: {query}")
             print(f"Body: {body}")
         try:
-            response = requests.request(method=method, url=self.url + uri, params=query, headers=requestHeaders, json=body, timeout=120)
+            if isinstance(body, dict):
+                response = requests.request(method=method, url=self.url + uri, params=query, headers=requestHeaders, json=body, timeout=120)
+            else:
+                response = requests.request(method=method, url=self.url + uri, params=query, headers=requestHeaders, data=body, timeout=120)
             if response.status_code != 200:
                 print(f"s:{response.status_code} h:{json.dumps(response.headers, indent=4)} b:{response.text}")
             response_body = response.json()  # Parse the response as JSON
+            response_status = response.status_code
             if self.debug:
                 print("Response JSON:")
                 #print(json.dumps(response_body, indent=4))  # Pretty-print the JSON response
         except Exception as e:
             try:
                 response_body = response.text
+                response_status = response.status_code
                 if self.debug:
-                    print(f"Response exception: ({e}) {response_body}")
+                    print(f"Response exception: ({e})({response.status_code}) {response_body}")
             except:
-                response_body = None
-                if self.debug:
-                    print(f"Response exception: ({e}) (no body)")
-        return ApiReturn(response.status_code,  response_body)
+                response_body = f"{e}"
+                response_status = -1
+                print(f"Response exception: ({e}) (no body)")
+        return ApiReturn(response_status,  response_body)
